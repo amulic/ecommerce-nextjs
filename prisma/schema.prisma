@@ -14,15 +14,18 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(ulid())
+  id            String     @id @default(ulid())
   name          String
-  email         String    @unique
+  email         String     @unique
   emailVerified Boolean
   image         String?
   createdAt     DateTime
   updatedAt     DateTime
   sessions      Session[]
   accounts      Account[]
+  userRoles     UserRole[]
+  orders        Order[]
+  reviews       Review[]
 }
 
 model Session {
@@ -63,4 +66,114 @@ model Verification {
   expiresAt  DateTime
   createdAt  DateTime?
   updatedAt  DateTime?
+}
+
+model Role {
+  id          String       @id @default(ulid())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  userRoles   UserRole[]
+  permissions Permission[]
+}
+
+model UserRole {
+  userId     String
+  roleId     String
+  assignedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model Permission {
+  id          String   @id @default(ulid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  upadatedAt  DateTime @updatedAt
+  roles       Role[]
+}
+
+model Product {
+  id          String      @id @default(ulid())
+  name        String
+  description String?
+  price       Decimal     @db.Decimal(10, 2)
+  sku         String      @unique
+  inventory   Int         @default(0)
+  isActive    Boolean     @default(true)
+  images      String[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  categories  Category[]
+  reviews     Review[]
+  orderItems  OrderItem[]
+}
+
+model Category {
+  id          String     @id @default(ulid())
+  name        String     @unique
+  description String?
+  slug        String     @unique
+  parentId    String?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  Product     Product?   @relation(fields: [productId], references: [id])
+  productId   String?
+}
+
+model Review {
+  id        String   @id @default(ulid())
+  rating    Int
+  comment   String?
+  userId    String
+  productId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id              String        @id @default(ulid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  status          OrderStatus   @default(PENDING)
+  totalAmount     Decimal       @db.Decimal(10, 2)
+  shippingAddress String?
+  billingAddress  String?
+  paymentMethod   String?
+  paymentStatus   PaymentStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  orderItems      OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(ulid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
 }

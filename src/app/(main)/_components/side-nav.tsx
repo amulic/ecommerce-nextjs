@@ -32,7 +32,7 @@ import {
 import { useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const prisma = new PrismaClient();
 
@@ -56,6 +56,7 @@ const sidebarItems = [
 
 export function SideNav() {
 	const router = useRouter();
+	const pathname = usePathname();
 	async function signOut() {
 		const result = await authClient.signOut();
 		console.log("Sign out attempt with:", result);
@@ -71,7 +72,7 @@ export function SideNav() {
 						<SidebarMenu>
 							{sidebarItems.map((item) => (
 								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton asChild>
+									<SidebarMenuButton asChild isActive={pathname === item.url}>
 										<Link href={item.url} className="flex items-center gap-2">
 											<item.icon />
 											<span>{item.title}</span>
