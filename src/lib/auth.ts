@@ -17,7 +17,16 @@ export const auth = betterAuth({
 });
 
 export const isAuthenticated = cache(async () => {
-	return auth.api.getSession({
+	const session = await auth.api.getSession({
 		headers: await headers(),
 	});
+	if (!session) return null;
+
+	const user = await prisma.user.findUnique({
+		where: { id: session.user.id },
+	});
+
+	if (!user) return null;
+
+	return { session: session.session, user };
 });

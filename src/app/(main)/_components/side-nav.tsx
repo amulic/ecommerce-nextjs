@@ -21,6 +21,7 @@ import {
 	ShoppingCart,
 	User2,
 	ChevronUp,
+	UserCog,
 } from "lucide-react";
 import {
 	DropdownMenu,
@@ -28,15 +29,14 @@ import {
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuTrigger,
-} from "@radix-ui/react-dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
+import type { User } from "@prisma/client";
 
-const prisma = new PrismaClient();
-
-const sidebarItems = [
+const sidebarItemsUser = [
 	{
 		title: "Home",
 		url: "/home",
@@ -54,7 +54,17 @@ const sidebarItems = [
 	},
 ];
 
-export function SideNav() {
+const sidebarItemsAdmin = [
+	{
+		title: "User dashboard",
+		url: "/user-dashboard",
+		icon: UserCog,
+	},
+];
+
+export function SideNav(props: {
+	user?: User;
+}) {
 	const router = useRouter();
 	const pathname = usePathname();
 	async function signOut() {
@@ -62,6 +72,7 @@ export function SideNav() {
 		console.log("Sign out attempt with:", result);
 		router.refresh();
 	}
+	console.log(props.user);
 	return (
 		<Sidebar collapsible="icon">
 			<SidebarHeader className="flex items-center justify-between p-4" />
@@ -70,7 +81,7 @@ export function SideNav() {
 					<SidebarGroupLabel>Welcome to E-Commerce app! </SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							{sidebarItems.map((item) => (
+							{sidebarItemsUser.map((item) => (
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton asChild isActive={pathname === item.url}>
 										<Link href={item.url} className="flex items-center gap-2">
@@ -83,6 +94,25 @@ export function SideNav() {
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
+				{props.user?.role === "ADMIN" && (
+					<SidebarGroup>
+						<SidebarGroupLabel>Admin</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								{sidebarItemsAdmin.map((item) => (
+									<SidebarMenuItem key={item.title}>
+										<SidebarMenuButton asChild isActive={pathname === item.url}>
+											<Link href={item.url} className="flex items-center gap-2">
+												<item.icon />
+												<span>{item.title}</span>
+											</Link>
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								))}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				)}
 			</SidebarContent>
 			<SidebarFooter>
 				<SidebarMenu>
@@ -99,15 +129,13 @@ export function SideNav() {
 								className="w-[--radix-popper-anchor-width]"
 							>
 								<DropdownMenuItem>
-									<DropdownMenuLabel>Account</DropdownMenuLabel>
+									<span>Account</span>
 								</DropdownMenuItem>
 								<DropdownMenuItem>
-									<DropdownMenuLabel>Billing</DropdownMenuLabel>
+									<span>Billing</span>
 								</DropdownMenuItem>
-								<DropdownMenuItem>
-									<DropdownMenuLabel onClick={() => signOut()}>
-										Sign out
-									</DropdownMenuLabel>
+								<DropdownMenuItem onClick={signOut}>
+									<span>Sign out</span>
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>

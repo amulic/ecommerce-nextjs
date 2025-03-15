@@ -1,6 +1,6 @@
 // prisma/seed.ts
-import { PrismaClient } from "@prisma/client";
-import { hash } from "bcrypt";
+import { PrismaClient, Role } from "@prisma/client";
+import { hash } from "better-auth";
 
 const prisma = new PrismaClient();
 
@@ -14,71 +14,10 @@ async function main() {
 		prisma.review.deleteMany(),
 		prisma.product.deleteMany(),
 		prisma.category.deleteMany(),
-		prisma.userRole.deleteMany(),
-		prisma.permission.deleteMany(),
-		prisma.role.deleteMany(),
+		prisma.verification.deleteMany(),
 		prisma.session.deleteMany(),
 		prisma.account.deleteMany(),
 		prisma.user.deleteMany(),
-	]);
-
-	// Create roles and permissions
-	const adminRole = await prisma.role.create({
-		data: {
-			id: "role_admin",
-			name: "admin",
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		},
-	});
-
-	const managerRole = await prisma.role.create({
-		data: {
-			id: "role_manager",
-			name: "manager",
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		},
-	});
-
-	const userRole = await prisma.role.create({
-		data: {
-			id: "role_user",
-			name: "user",
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		},
-	});
-
-	// Create permissions
-	const permissions = await Promise.all([
-		prisma.permission.create({
-			data: {
-				name: "manage_users",
-				description: "Can manage all users",
-				roles: {
-					connect: { id: adminRole.id },
-				},
-			},
-		}),
-		prisma.permission.create({
-			data: {
-				name: "manage_products",
-				description: "Can manage all products",
-				roles: {
-					connect: [{ id: adminRole.id }, { id: managerRole.id }],
-				},
-			},
-		}),
-		prisma.permission.create({
-			data: {
-				name: "view_orders",
-				description: "Can view all orders",
-				roles: {
-					connect: [{ id: adminRole.id }, { id: managerRole.id }],
-				},
-			},
-		}),
 	]);
 
 	// Create admin user
@@ -87,21 +26,16 @@ async function main() {
 			name: "Admin User",
 			email: "admin@example.com",
 			emailVerified: true,
+			role: Role.ADMIN,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 			accounts: {
 				create: {
-					id: "account_admin",
-					providerId: "credentials",
-					accountId: "admin",
-					password: await hash("password123", 10),
+					providerId: "credentials", // Changed from email-password to credentials
+					accountId: "admin@example.com",
+					password: "Abcd1234/", // Use a simple password for testing
 					createdAt: new Date(),
 					updatedAt: new Date(),
-				},
-			},
-			userRoles: {
-				create: {
-					roleId: adminRole.id,
 				},
 			},
 		},
@@ -113,21 +47,39 @@ async function main() {
 			name: "Regular User",
 			email: "user@example.com",
 			emailVerified: true,
+			role: Role.USER,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 			accounts: {
 				create: {
-					id: "account_user",
-					providerId: "credentials",
-					accountId: "user",
-					password: await hash("password123", 10),
+					providerId: "credentials", // Changed from email-password to credentials
+					accountId: "user@example.com",
+					password:
+						"5df454627b1c1778ef4bb37e82b7a5fb:55c0515cddb84387a58a29d4924a9749cf51313d3db68ddc6b59082fad8e88a7634e28827a52fbef959a217b4e169e00eb2500b09b67ed3518ed51657ca334eb", // Use a simple password for testing
 					createdAt: new Date(),
 					updatedAt: new Date(),
 				},
 			},
-			userRoles: {
+		},
+	});
+
+	// Create employee user
+	const employeeUser = await prisma.user.create({
+		data: {
+			name: "Employee User",
+			email: "employee@example.com",
+			emailVerified: true,
+			role: Role.EMPLOYEE,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+			accounts: {
 				create: {
-					roleId: userRole.id,
+					providerId: "credentials",
+					accountId: "employee@example.com",
+					password:
+						"5df454627b1c1778ef4bb37e82b7a5fb:55c0515cddb84387a58a29d4924a9749cf51313d3db68ddc6b59082fad8e88a7634e28827a52fbef959a217b4e169e00eb2500b09b67ed3518ed51657ca334eb",
+					createdAt: new Date(),
+					updatedAt: new Date(),
 				},
 			},
 		},
