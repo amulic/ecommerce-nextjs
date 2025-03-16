@@ -22,6 +22,7 @@ import {
 	User2,
 	ChevronUp,
 	UserCog,
+	SquarePlus,
 } from "lucide-react";
 import {
 	DropdownMenu,
@@ -62,6 +63,14 @@ const sidebarItemsAdmin = [
 	},
 ];
 
+const sidebarItemsEmployee = [
+	{
+		title: "Add products to store",
+		url: "/add-product",
+		icon: SquarePlus,
+	},
+];
+
 export function SideNav(props: {
 	user?: User;
 }) {
@@ -96,10 +105,29 @@ export function SideNav(props: {
 				</SidebarGroup>
 				{props.user?.role === "ADMIN" && (
 					<SidebarGroup>
-						<SidebarGroupLabel>Admin</SidebarGroupLabel>
+						<SidebarGroupLabel>Admin options</SidebarGroupLabel>
 						<SidebarGroupContent>
 							<SidebarMenu>
 								{sidebarItemsAdmin.map((item) => (
+									<SidebarMenuItem key={item.title}>
+										<SidebarMenuButton asChild isActive={pathname === item.url}>
+											<Link href={item.url} className="flex items-center gap-2">
+												<item.icon />
+												<span>{item.title}</span>
+											</Link>
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								))}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				)}
+				{props.user?.role === "ADMIN" && (
+					<SidebarGroup>
+						<SidebarGroupLabel>Employee options</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								{sidebarItemsEmployee.map((item) => (
 									<SidebarMenuItem key={item.title}>
 										<SidebarMenuButton asChild isActive={pathname === item.url}>
 											<Link href={item.url} className="flex items-center gap-2">
