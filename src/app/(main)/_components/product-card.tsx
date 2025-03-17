@@ -6,10 +6,10 @@ import {
 	CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Product } from "@prisma/client";
+import type { Product } from "@prisma/client";
 
 interface ProductCardProps {
-	product: Product
+	product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -31,7 +31,7 @@ export function ProductCard({ product }: ProductCardProps) {
 				<p className="mt-2 text-primary font-bold">${product.price}</p>
 			</CardContent>
 			<CardFooter className="p-4">
-				<Button className="w-full">Add to Cart</Button>
+				<Button className="w-full hover:cursor-pointer">Add to Cart</Button>
 			</CardFooter>
 		</Card>
 	);
