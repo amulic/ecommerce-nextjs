@@ -1,5 +1,7 @@
 "use client";
 
+// TODO DO THIS RIGHT, SEPERATE THE CLIENTSIDE LOGIC FROM THE SERVERSIDE LOGIC
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
