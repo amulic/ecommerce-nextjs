@@ -85,16 +85,14 @@ model Product {
 }
 
 model Category {
-  id          String     @id @default(ulid())
-  name        String     @unique
+  id          String   @id @default(ulid())
+  name        String   @unique
   description String?
-  slug        String     @unique
+  slug        String   @unique
   parentId    String?
-  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryHierarchy")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  Product     Product?   @relation(fields: [productId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Product     Product? @relation(fields: [productId], references: [id])
   productId   String?
 }
 

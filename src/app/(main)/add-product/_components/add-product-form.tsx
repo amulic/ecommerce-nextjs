@@ -19,8 +19,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { Category } from "@prisma/client";
+import type { Category, Product } from "@prisma/client";
 import { toast } from "sonner";
+import { generateSKU } from "@/lib/sku-generator";
+import { useDebouncedCallback } from "use-debounce";
+import { addProduct } from "./add-product-action";
 
 const formSchema = z.object({
 	name: z.string().min(3, "Product name must be at least 3 characters"),
@@ -29,14 +32,12 @@ const formSchema = z.object({
 		.number()
 		.positive("Price must be a positive number")
 		.min(0.01, "Price must be at least 0.01"),
-	sku: z.string().min(3, "SKU must be at least 3 characters"),
 	inventory: z.coerce
 		.number()
 		.int()
 		.nonnegative("Inventory must be 0 or higher"),
 	isActive: z.boolean().default(true),
 	categoryIds: z.array(z.string()).min(1, "Select at least one category"),
-	// We'll handle images separately since file inputs don't work well with React Hook Form
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -57,7 +58,6 @@ export function AddProductForm({ categories }: CategoryProps) {
 			name: "",
 			description: "",
 			price: 0,
-			sku: "",
 			inventory: 0,
 			isActive: true,
 			categoryIds: [],
@@ -95,32 +95,50 @@ export function AddProductForm({ categories }: CategoryProps) {
 
 	// Form submission
 	const onSubmit = async (data: FormValues) => {
-		if (images.length === 0) {
-			toast.error("No images selected", {
-				description: "Please add at least one product image",
-			});
-			return;
-		}
+		// if (images.length === 0) {
+		// 	toast.error("No images selected", {
+		// 		description: "Please add at least one product image",
+		// 	});
+		// 	return;
+		// }
 
 		setIsSubmitting(true);
+
+		console.log(form);
 
 		try {
 			// In a real application, you would:
 			// 1. Upload images to storage and get URLs
 			// 2. Send product data to your API
 
-			console.log("Form data:", data);
-			console.log("Images:", images);
+			// const uploadedImageUrls = images.map((_, index) =>
+			// 	`/images/products/${data.sku.toLowerCase()}-${index + 1}.jpg`
+			//   );
 
-			// Mock API call
-			await new Promise((resolve) => setTimeout(resolve, 1500));
+			// Define the expected result type
+			interface ProductActionResult {
+				success: boolean;
+				data?: Product;
+				message?: string;
+			}
 
-			toast.success("Product created", {
-				description: `Product ${data.name} has been created successfully`,
-			});
+			const result = (await addProduct({
+				...data,
+				imageUrls,
+			})) as ProductActionResult;
+
+			if (result.success) {
+				toast.success("Product created", {
+					description: `Product ${data.name} has been created successfully`,
+				});
+				router.push("/dashboard");
+			} else {
+				toast.error("Error creating product", {
+					description: result.message || "An unknown error occurred!",
+				});
+			}
 
 			// Navigate back to products page
-			router.push("/dashboard");
 		} catch (error) {
 			toast.error("Error", {
 				description: "Failed to create product. Please try again.",
@@ -148,28 +166,6 @@ export function AddProductForm({ categories }: CategoryProps) {
 									<FormControl>
 										<Input placeholder="e.g. Wireless Headphones" {...field} />
 									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-
-						<FormField
-							control={form.control}
-							name="sku"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>SKU*</FormLabel>
-									<FormControl>
-										<Input
-											disabled
-											defaultValue={Date.now().toString()}
-											placeholder="e.g. WH-001-BLK"
-											{...field}
-										/>
-									</FormControl>
-									<FormDescription>
-										A unique identifier for your product
-									</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -343,7 +339,7 @@ export function AddProductForm({ categories }: CategoryProps) {
 										<div className="aspect-square rounded-md overflow-hidden">
 											<img
 												src={url}
-												alt={`Product image ${index + 1}`}
+												alt={`Product ${index + 1}`}
 												className="w-full h-full object-cover"
 											/>
 										</div>
@@ -363,7 +359,11 @@ export function AddProductForm({ categories }: CategoryProps) {
 
 				{/* Submit button */}
 				<div className="flex justify-end">
-					<Button type="submit" disabled={isSubmitting}>
+					<Button
+						type="submit"
+						disabled={isSubmitting}
+						className="hover:cursor-pointer"
+					>
 						{isSubmitting ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />

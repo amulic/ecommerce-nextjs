@@ -17,7 +17,7 @@ export function ProductCard({ product }: ProductCardProps) {
 		<Card className="flex flex-col">
 			<CardHeader className="p-0 relative h-48 overflow-hidden">
 				<Image
-					src={product.images[0]}
+					src={product.images[0] != null ? product.images[0] : ""}
 					alt={product.name}
 					fill
 					className="object-cover"

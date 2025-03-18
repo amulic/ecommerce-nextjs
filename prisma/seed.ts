@@ -1,6 +1,6 @@
 // prisma/seed.ts
 import { PrismaClient, Role } from "@prisma/client";
-import { hash } from "better-auth";
+//import { hash } from "better-auth";
 
 const prisma = new PrismaClient();
 
@@ -108,7 +108,6 @@ async function main() {
 			name: "Smartphones",
 			slug: "smartphones",
 			description: "Mobile phones and accessories",
-			parentId: electronicsCategory.id,
 		},
 	});
 
@@ -117,7 +116,6 @@ async function main() {
 			name: "Laptops",
 			slug: "laptops",
 			description: "Portable computers",
-			parentId: electronicsCategory.id,
 		},
 	});
 
