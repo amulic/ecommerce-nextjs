@@ -125,16 +125,18 @@ export function AddProductForm({ categories }: CategoryProps) {
 			const result = (await addProduct({
 				...data,
 				imageUrls,
-			})) as ProductActionResult;
+			})) as { data: ProductActionResult };
 
-			if (result.success) {
+			console.log("Result:", result.data);
+
+			if (result.data.success) {
 				toast.success("Product created", {
 					description: `Product ${data.name} has been created successfully`,
 				});
 				router.push("/dashboard");
 			} else {
 				toast.error("Error creating product", {
-					description: result.message || "An unknown error occurred!",
+					description: result.data.message || "An unknown error occurred!",
 				});
 			}
 

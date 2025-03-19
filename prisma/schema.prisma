@@ -26,6 +26,7 @@ model User {
   role          Role      @default(USER)
   orders        Order[]
   reviews       Review[]
+  Cart          Cart[]
 }
 
 model Session {
@@ -82,6 +83,30 @@ model Product {
   categories  Category[]
   reviews     Review[]
   orderItems  OrderItem[]
+  polarId     String?
+  CartItem    CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(ulid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+}
+
+model Cart {
+  id        String     @id @default(ulid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Category {

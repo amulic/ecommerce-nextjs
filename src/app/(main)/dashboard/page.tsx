@@ -12,16 +12,20 @@ export default async function DashboardPage(props: {
 
 	const categories = await prisma.category.findMany();
 
+	// Query with the dynamic where clause
 	const products = await prisma.product.findMany({
 		where: {
-			name: {
-				contains: search,
-			},
-			categories: {
-				some: {
-					slug: category,
-				},
-			},
+			...(search
+				? {
+						OR: [
+							{ name: { contains: search, mode: "insensitive" } },
+							{ description: { contains: search, mode: "insensitive" } },
+						],
+					}
+				: {}),
+			...(category && category !== "all"
+				? { categories: { some: { slug: category } } }
+				: {}),
 		},
 	});
 
