@@ -1,6 +1,5 @@
 "use client";
 
-import { PrismaClient } from "@prisma/client";
 import {
 	Sidebar,
 	SidebarContent,
@@ -15,8 +14,6 @@ import {
 } from "@/components/ui/sidebar";
 import {
 	Home,
-	Inbox,
-	Search,
 	LayoutDashboard,
 	ShoppingCart,
 	User2,
@@ -31,29 +28,12 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@prisma/client";
-
-const sidebarItemsUser = [
-	{
-		title: "Home",
-		url: "/home",
-		icon: Home,
-	},
-	{
-		title: "Dashboard",
-		url: "/dashboard",
-		icon: LayoutDashboard,
-	},
-	{
-		title: "Shopping cart",
-		url: "/shopping-cart",
-		icon: ShoppingCart,
-	},
-];
+import { getCartContents } from "../shopping-cart/_actions/cart-actions";
 
 const sidebarItemsAdmin = [
 	{
@@ -81,6 +61,51 @@ export function SideNav(props: {
 		console.log("Sign out attempt with:", result);
 		router.refresh();
 	}
+
+	const [cartHasItems, setCartHasItems] = useState(false);
+
+	const sidebarItemsUser = [
+		{
+			title: "Home",
+			url: "/home",
+			icon: Home,
+		},
+		{
+			title: "Dashboard",
+			url: "/dashboard",
+			icon: LayoutDashboard,
+		},
+		{
+			title: "Shopping cart",
+			url: "/shopping-cart",
+			icon: ShoppingCart,
+			hasNotification: cartHasItems, // Now property is defined based on state
+		},
+	];
+
+	useEffect(() => {
+		async function checkCart() {
+			try {
+				const cartData = await getCartContents();
+				setCartHasItems(cartData.totalItems > 0);
+			} catch (error) {
+				console.error("Error fetching cart contents:", error);
+			}
+		}
+
+		checkCart();
+
+		const intervalId = setInterval(checkCart, 6000);
+
+		const handleCartUpdate = () => checkCart();
+		window.addEventListener("cartUpdated", handleCartUpdate);
+
+		return () => {
+			clearInterval(intervalId);
+			window.removeEventListener("cartUpdated", handleCartUpdate);
+		};
+	}, []);
+
 	console.log(props.user);
 	return (
 		<Sidebar collapsible="icon">
@@ -93,8 +118,16 @@ export function SideNav(props: {
 							{sidebarItemsUser.map((item) => (
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton asChild isActive={pathname === item.url}>
-										<Link href={item.url} className="flex items-center gap-2">
-											<item.icon />
+										<Link
+											href={item.url}
+											className="flex items-center gap-2 relative"
+										>
+											<div className="relative">
+												<item.icon />
+												{item.hasNotification && (
+													<span className="absolute -top-1 -right-1 bg-red-500 rounded-full w-2 h-2" />
+												)}
+											</div>
 											<span>{item.title}</span>
 										</Link>
 									</SidebarMenuButton>
