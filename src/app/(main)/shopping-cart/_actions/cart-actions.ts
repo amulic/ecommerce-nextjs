@@ -6,10 +6,11 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
 import { authClient } from "@/lib/auth-client";
+import { isAuthenticated } from "@/lib/auth";
 
 async function getOrCreateCart() {
-	const session = await authClient.getSession();
-	const userId = session?.data?.user.id || null;
+	const session = await isAuthenticated();
+	const userId = session?.user.id || null;
 
 	if (userId) {
 		let cart = await prisma.cart.findFirst({
@@ -26,6 +27,8 @@ async function getOrCreateCart() {
 
 		return cart;
 	}
+
+	throw new Error("User not logged in");
 
 	// // if user is not logged in, create a cart in cookies
 	// const cookieStore = cookies();
@@ -191,8 +194,18 @@ export async function getCartContents() {
 	try {
 		const cart = await getOrCreateCart();
 
+		if (!cart) {
+			return {
+				success: false,
+				message: "Cart not found",
+				cart: null,
+				totalItems: 0,
+				totalPrice: 0,
+			};
+		}
+
 		const cartWithItems = await prisma.cart.findUnique({
-			where: { id: cart?.id },
+			where: { id: cart.id as string },
 			include: {
 				items: {
 					include: {
