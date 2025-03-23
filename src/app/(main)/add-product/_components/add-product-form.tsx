@@ -23,7 +23,7 @@ import type { Category, Product } from "@prisma/client";
 import { toast } from "sonner";
 import { generateSKU } from "@/lib/sku-generator";
 import { useDebouncedCallback } from "use-debounce";
-import { addProduct } from "./add-product-action";
+import { addProduct } from "../_actions/add-product-action";
 
 const formSchema = z.object({
 	name: z.string().min(3, "Product name must be at least 3 characters"),

@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import {
 	Card,
@@ -5,19 +7,15 @@ import {
 	CardContent,
 	CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import type { Product } from "@prisma/client";
+import { toast } from "@/components/ui/use-toast";
+import { AddToCartButton } from "./add-to-cart-button";
 
 interface ProductCardProps {
 	product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-	const addToCart = (productId: string) => {
-		console.log("Add to cart:", product.name);
-		// Implementation needed
-	};
-
 	return (
 		<Card className="flex flex-col">
 			<CardHeader className="p-0 relative h-48 overflow-hidden">
@@ -43,7 +41,7 @@ export function ProductCard({ product }: ProductCardProps) {
 				<p className="mt-2 text-primary font-bold">${product.price}</p>
 			</CardContent>
 			<CardFooter className="p-4">
-				<Button className="w-full hover:cursor-pointer">Add to Cart</Button>
+				<AddToCartButton productId={product.id} inventory={product.inventory} />
 			</CardFooter>
 		</Card>
 	);
