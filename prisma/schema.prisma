@@ -101,12 +101,13 @@ model CartItem {
 }
 
 model Cart {
-  id        String     @id @default(ulid())
-  userId    String
-  user      User       @relation(fields: [userId], references: [id])
-  items     CartItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                String     @id @default(ulid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id])
+  items             CartItem[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  checkoutSessionId String?    @unique
 }
 
 model Category {

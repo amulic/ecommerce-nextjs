@@ -11,6 +11,7 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarRail,
 } from "@/components/ui/sidebar";
 import {
 	Home,
@@ -20,6 +21,7 @@ import {
 	ChevronUp,
 	UserCog,
 	SquarePlus,
+	Receipt,
 } from "lucide-react";
 import {
 	DropdownMenu,
@@ -81,6 +83,11 @@ export function SideNav(props: {
 			url: "/shopping-cart",
 			icon: ShoppingCart,
 		},
+		{
+			title: "User orders",
+			url: "/user-orders",
+			icon: Receipt,
+		},
 	];
 
 	useEffect(() => {
@@ -110,7 +117,8 @@ export function SideNav(props: {
 
 	console.log(props.user);
 	return (
-		<Sidebar collapsible="icon">
+		<Sidebar collapsible="icon" variant="floating">
+			<SidebarRail />
 			<SidebarHeader className="flex items-center justify-between p-4" />
 			<SidebarContent>
 				<SidebarGroup>
@@ -124,9 +132,8 @@ export function SideNav(props: {
 											href={item.url}
 											className="flex items-center gap-2 relative"
 										>
-											<div className="relative">
-												<item.icon />
-											</div>
+											<item.icon />
+
 											<span>{item.title}</span>
 											{item.title === "Shopping cart" && cartItemCount > 0 && (
 												<span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 flex items-center justify-center min-w-[1.25rem]">

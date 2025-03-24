@@ -24,6 +24,7 @@ export const isAuthenticated = cache(async () => {
 
 	const user = await prisma.user.findUnique({
 		where: { id: session.user.id },
+		include: { Cart: true },
 	});
 
 	if (!user) return null;

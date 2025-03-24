@@ -26,6 +26,7 @@ import {
 	Loader2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 // Types based on your Prisma schema
 type CartWithItems = {
@@ -174,6 +175,7 @@ export default function ShoppingCart() {
 
 		// Server update
 		const result = await clearCart();
+		window.dispatchEvent(new Event("cartUpdated"));
 
 		if (!result.success) {
 			// Revert on failure
@@ -373,14 +375,11 @@ export default function ShoppingCart() {
 							</div>
 						</CardContent>
 						<CardFooter className="px-6 pb-6 pt-2">
-							<Button
-								className="w-full"
-								size="lg"
-								onClick={() => router.push("/checkout")}
-								disabled={!!isProcessing}
-							>
-								Proceed to Checkout
-							</Button>
+							<Link href="/checkout" className="w-full">
+								<Button className="w-full" size="lg" disabled={!!isProcessing}>
+									Proceed to Checkout
+								</Button>
+							</Link>
 						</CardFooter>
 					</Card>
 				</div>
