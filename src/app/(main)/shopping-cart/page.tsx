@@ -151,6 +151,8 @@ export default function ShoppingCart() {
 		// Server update
 		const result = await removeFromCart(productId);
 
+		window.dispatchEvent(new Event("cartUpdated"));
+
 		if (!result.success) {
 			// Revert on failure
 			setCart(oldCart);
@@ -207,7 +209,7 @@ export default function ShoppingCart() {
 						<p className="text-muted-foreground mb-8 text-center max-w-md">
 							Looks like you haven't added any products to your cart yet.
 						</p>
-						<Button onClick={() => router.push("/shop")} size="lg">
+						<Button onClick={() => router.push("/dashboard")} size="lg">
 							Browse Products
 						</Button>
 					</CardContent>

@@ -63,6 +63,7 @@ export function SideNav(props: {
 	}
 
 	const [cartHasItems, setCartHasItems] = useState(false);
+	const [cartItemCount, setCartItemCount] = useState(0);
 
 	const sidebarItemsUser = [
 		{
@@ -79,7 +80,6 @@ export function SideNav(props: {
 			title: "Shopping cart",
 			url: "/shopping-cart",
 			icon: ShoppingCart,
-			hasNotification: cartHasItems, // Now property is defined based on state
 		},
 	];
 
@@ -87,6 +87,8 @@ export function SideNav(props: {
 		async function checkCart() {
 			try {
 				const cartData = await getCartContents();
+				const itemCount = cartData.totalItems || 0;
+				setCartItemCount(itemCount);
 				setCartHasItems(cartData.totalItems > 0);
 			} catch (error) {
 				console.error("Error fetching cart contents:", error);
@@ -95,13 +97,13 @@ export function SideNav(props: {
 
 		checkCart();
 
-		const intervalId = setInterval(checkCart, 6000);
+		//const intervalId = setInterval(checkCart, 6000);
 
 		const handleCartUpdate = () => checkCart();
 		window.addEventListener("cartUpdated", handleCartUpdate);
 
 		return () => {
-			clearInterval(intervalId);
+			//clearInterval(intervalId);
 			window.removeEventListener("cartUpdated", handleCartUpdate);
 		};
 	}, []);
@@ -124,11 +126,13 @@ export function SideNav(props: {
 										>
 											<div className="relative">
 												<item.icon />
-												{item.hasNotification && (
-													<span className="absolute -top-1 -right-1 bg-red-500 rounded-full w-2 h-2" />
-												)}
 											</div>
 											<span>{item.title}</span>
+											{item.title === "Shopping cart" && cartItemCount > 0 && (
+												<span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 flex items-center justify-center min-w-[1.25rem]">
+													{cartItemCount}
+												</span>
+											)}
 										</Link>
 									</SidebarMenuButton>
 								</SidebarMenuItem>

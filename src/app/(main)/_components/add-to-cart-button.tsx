@@ -25,6 +25,7 @@ export function AddToCartButton({
 
 			if (result.success) {
 				toast.success("Added to cart");
+				window.dispatchEvent(new Event("cartUpdated"));
 			} else {
 				toast.error(result.message || "Failed to add to cart");
 			}

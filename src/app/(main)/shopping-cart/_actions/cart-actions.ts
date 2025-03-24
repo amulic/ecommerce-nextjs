@@ -97,7 +97,6 @@ export async function addToCart(productId: string, quantity = 1) {
 				},
 			});
 		}
-		window.dispatchEvent(new Event("cartUpdated"));
 		return { success: true };
 	} catch (error) {
 		console.error("Error adding to cart:", error);
