@@ -20,24 +20,45 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, Package } from "lucide-react";
 import React from "react";
+import type { Order, OrderItem } from "@prisma/client";
 
-export type OrderItem = {
+// Updated types to match Polar API response
+type OrderItem = {
 	id: string;
 	name: string;
-	price: number;
 	quantity: number;
+	unitAmount: number; // Amount in cents
+	amount: number; // Total amount in cents
+	productId: string;
 };
 
-export type Order = {
+type PolarOrder = {
 	id: string;
-	date: string;
-	total: number;
-	status: "processing" | "shipped" | "delivered" | "cancelled";
+	createdAt: string;
+	status: string;
+	totalAmount: number; // Amount in cents
+	currency: string;
 	items: OrderItem[];
+	billingAddress?: {
+		name?: string;
+		line1?: string;
+		line2?: string;
+		city?: string;
+		state?: string;
+		postalCode?: string;
+		country?: string;
+	};
+	customer: {
+		email: string;
+		name: string;
+	};
+	paid: boolean;
+	subtotalAmount: number;
+	taxAmount: number;
 };
 
 type OrdersProps = {
-	orders: Order[];
+	orders: PolarOrder[];
 };
 
 export function Orders({ orders }: OrdersProps) {
@@ -47,16 +68,27 @@ export function Orders({ orders }: OrdersProps) {
 		setExpandedOrder(expandedOrder === orderId ? null : orderId);
 	};
 
-	const getStatusColor = (status: Order["status"]) => {
-		switch (status) {
+	// Convert cents to dollars with formatting
+	const formatCurrency = (amount: number, currency = "usd") => {
+		const numericAmount = amount / 100;
+		return new Intl.NumberFormat("en-US", {
+			style: "currency",
+			currency: currency.toUpperCase(),
+		}).format(numericAmount);
+	};
+	const getStatusColor = (status: string) => {
+		switch (status.toLowerCase()) {
+			case "paid":
+				return "bg-green-100 text-green-800";
 			case "processing":
 				return "bg-yellow-100 text-yellow-800";
-			case "shipped":
+			case "refunded":
 				return "bg-blue-100 text-blue-800";
-			case "delivered":
-				return "bg-green-100 text-green-800";
 			case "cancelled":
+			case "canceled":
 				return "bg-red-100 text-red-800";
+			case "pending":
+				return "bg-orange-100 text-orange-800";
 			default:
 				return "bg-gray-100 text-gray-800";
 		}
@@ -103,7 +135,7 @@ export function Orders({ orders }: OrdersProps) {
 											{order.id.substring(0, 8)}...
 										</TableCell>
 										<TableCell>
-											{new Date(order.date).toLocaleDateString()}
+											{new Date(order.createdAt).toLocaleDateString()}
 										</TableCell>
 										<TableCell>
 											<Badge className={getStatusColor(order.status)}>
@@ -112,7 +144,7 @@ export function Orders({ orders }: OrdersProps) {
 											</Badge>
 										</TableCell>
 										<TableCell className="text-right">
-											${order.total.toFixed(2)}
+											{formatCurrency(order.totalAmount, order.currency)}
 										</TableCell>
 										<TableCell>
 											<Button
@@ -132,34 +164,114 @@ export function Orders({ orders }: OrdersProps) {
 									{expandedOrder === order.id && (
 										<TableRow>
 											<TableCell colSpan={5} className="p-0">
-												<div className="p-4 bg-gray-50">
-													<h4 className="font-medium mb-2">Order Items</h4>
-													<Table>
-														<TableHeader>
-															<TableRow>
-																<TableHead>Product</TableHead>
-																<TableHead>Price</TableHead>
-																<TableHead>Quantity</TableHead>
-																<TableHead className="text-right">
-																	Subtotal
-																</TableHead>
-															</TableRow>
-														</TableHeader>
-														<TableBody>
-															{order.items.map((item) => (
-																<TableRow key={item.id}>
-																	<TableCell>{item.name}</TableCell>
-																	<TableCell>
-																		${item.price.toFixed(2)}
-																	</TableCell>
-																	<TableCell>{item.quantity}</TableCell>
-																	<TableCell className="text-right">
-																		${(item.price * item.quantity).toFixed(2)}
-																	</TableCell>
+												<div className="p-4 bg-gray-50 space-y-4">
+													{/* Order Items */}
+													<div>
+														<h4 className="font-medium mb-2">Order Items</h4>
+														<Table>
+															<TableHeader>
+																<TableRow>
+																	<TableHead>Product</TableHead>
+																	<TableHead>Quantity</TableHead>
+																	<TableHead className="text-right">
+																		Amount
+																	</TableHead>
 																</TableRow>
-															))}
-														</TableBody>
-													</Table>
+															</TableHeader>
+															<TableBody>
+																{order.items &&
+																	order.items.map((item) => (
+																		<TableRow key={item.id}>
+																			<TableCell>
+																				<div>
+																					<div className="font-medium">
+																						{item.name}
+																					</div>
+																					{item.description && (
+																						<div className="text-sm text-gray-500">
+																							{item.description}
+																						</div>
+																					)}
+																				</div>
+																			</TableCell>
+																			<TableCell>{item.quantity}</TableCell>
+																			<TableCell className="text-right">
+																				{formatCurrency(
+																					item.amount,
+																					order.currency,
+																				)}
+																			</TableCell>
+																		</TableRow>
+																	))}
+															</TableBody>
+														</Table>
+													</div>
+
+													{/* Price Summary */}
+													<div className="pt-2">
+														<h4 className="font-medium mb-2">Order Summary</h4>
+														<div className="bg-white p-4 rounded border space-y-2">
+															<div className="flex justify-between">
+																<span className="text-gray-600">Subtotal</span>
+																<span>
+																	{formatCurrency(
+																		order.subtotalAmount,
+																		order.currency,
+																	)}
+																</span>
+															</div>
+															<div className="flex justify-between">
+																<span className="text-gray-600">Tax</span>
+																<span>
+																	{formatCurrency(
+																		order.taxAmount,
+																		order.currency,
+																	)}
+																</span>
+															</div>
+															<div className="flex justify-between border-t pt-2 font-medium">
+																<span>Total</span>
+																<span>
+																	{formatCurrency(
+																		order.totalAmount,
+																		order.currency,
+																	)}
+																</span>
+															</div>
+															<div className="flex justify-between pt-1">
+																<span className="text-gray-600">
+																	Payment Status
+																</span>
+																<Badge
+																	variant={order.paid ? "success" : "outline"}
+																>
+																	{order.paid ? "Paid" : "Unpaid"}
+																</Badge>
+															</div>
+														</div>
+													</div>
+
+													{/* Billing Information */}
+													{order.billingAddress && (
+														<div className="pt-2">
+															<h4 className="font-medium mb-2">
+																Billing Information
+															</h4>
+															<div className="bg-white p-4 rounded border">
+																<p>{order.billingAddress.name}</p>
+																<p>{order.billingAddress.line1}</p>
+																{order.billingAddress.line2 && (
+																	<p>{order.billingAddress.line2}</p>
+																)}
+																<p>
+																	{order.billingAddress.city},{" "}
+																	{order.billingAddress.state}{" "}
+																	{order.billingAddress.postalCode}
+																</p>
+																<p>{order.billingAddress.country}</p>
+															</div>
+														</div>
+													)}
 												</div>
 											</TableCell>
 										</TableRow>

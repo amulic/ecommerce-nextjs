@@ -4,6 +4,13 @@ import { PrismaClient } from "@prisma/client";
 import { prisma } from "./prisma";
 import { cache } from "react";
 import { headers } from "next/headers";
+import { polar } from "@polar-sh/better-auth";
+import { Polar } from "@polar-sh/sdk";
+
+const client = new Polar({
+	accessToken: process.env.POLAR_ACCESS_TOKEN,
+	server: "sandbox",
+});
 
 export const auth = betterAuth({
 	database: prismaAdapter(prisma, {
@@ -13,6 +20,18 @@ export const auth = betterAuth({
 		enabled: true,
 		autoSignIn: false,
 	},
+	plugins: [
+		polar({
+			client,
+			createCustomerOnSignUp: true,
+			enableCustomerPortal: true,
+			checkout: {
+				enabled: true,
+				successUrl: "/checkout/success",
+				products: [],
+			},
+		}),
+	],
 	//plugins: [username()],
 });
 

@@ -1,4 +1,5 @@
 import { Orders, type Order, OrderItem } from "./_components/orders";
+import { getOrdersByCustomer } from "./_actions/order-actions";
 
 // Mock function to simulate fetching orders from a database
 async function getOrders(): Promise<Order[]> {
@@ -64,6 +65,8 @@ async function getOrders(): Promise<Order[]> {
 export default async function Page() {
 	// Server-side data fetching
 	const orders = await getOrders();
+	const ordersReal = await getOrdersByCustomer();
+	console.log("Orders real", ordersReal);
 
 	return (
 		<div className="container max-w-4xl mx-auto py-8">

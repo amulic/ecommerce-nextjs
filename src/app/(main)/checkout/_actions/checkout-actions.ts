@@ -71,7 +71,7 @@ export async function createCheckoutSession() {
 			},
 		});
 
-		console.log(checkoutSession.url);
+		console.log(checkoutSession);
 
 		revalidatePath(checkoutSession.url);
 
