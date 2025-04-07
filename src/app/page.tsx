@@ -1,5 +1,6 @@
 import { isAuthenticated } from "@/lib/auth";
 import Image from "next/image";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default async function Home() {
 	const isLoggedIn = await isAuthenticated();

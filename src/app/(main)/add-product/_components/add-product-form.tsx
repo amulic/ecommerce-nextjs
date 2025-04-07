@@ -205,8 +205,8 @@ export function AddProductForm({ categories }: CategoryProps) {
 								<FormItem>
 									<FormLabel>Price*</FormLabel>
 									<FormControl>
-										<div className="relative">
-											<span className="absolute left-3 top-2.5">$</span>
+										<div className="relative flex gap-2 items-center">
+											<span className="absolute left-3">$</span>
 											<Input
 												type="number"
 												min="0.01"

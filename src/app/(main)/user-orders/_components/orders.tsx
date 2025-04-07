@@ -20,53 +20,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, Package } from "lucide-react";
 import React from "react";
-import type { Order, OrderItem } from "@prisma/client";
+import type { Order } from "@polar-sh/sdk/models/components/order.js";
+import { format, parseISO } from "date-fns";
 
-// Updated types to match Polar API response
-type OrderItem = {
-	id: string;
-	name: string;
-	quantity: number;
-	unitAmount: number; // Amount in cents
-	amount: number; // Total amount in cents
-	productId: string;
-};
-
-type PolarOrder = {
-	id: string;
-	createdAt: string;
-	status: string;
-	totalAmount: number; // Amount in cents
-	currency: string;
-	items: OrderItem[];
-	billingAddress?: {
-		name?: string;
-		line1?: string;
-		line2?: string;
-		city?: string;
-		state?: string;
-		postalCode?: string;
-		country?: string;
-	};
-	customer: {
-		email: string;
-		name: string;
-	};
-	paid: boolean;
-	subtotalAmount: number;
-	taxAmount: number;
-};
-
-type OrdersProps = {
-	orders: PolarOrder[];
-};
-
-export function Orders({ orders }: OrdersProps) {
+export function Orders({ orders }: { orders: Order[] }) {
 	const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
 	const toggleOrderDetails = (orderId: string) => {
 		setExpandedOrder(expandedOrder === orderId ? null : orderId);
 	};
+
+	console.log("Orders:", JSON.stringify(orders[0], null, 2));
 
 	// Convert cents to dollars with formatting
 	const formatCurrency = (amount: number, currency = "usd") => {
@@ -76,6 +40,7 @@ export function Orders({ orders }: OrdersProps) {
 			currency: currency.toUpperCase(),
 		}).format(numericAmount);
 	};
+
 	const getStatusColor = (status: string) => {
 		switch (status.toLowerCase()) {
 			case "paid":
@@ -124,7 +89,7 @@ export function Orders({ orders }: OrdersProps) {
 								<TableHead>Date</TableHead>
 								<TableHead>Status</TableHead>
 								<TableHead className="text-right">Total</TableHead>
-								<TableHead className="w-[50px]"></TableHead>
+								<TableHead className="w-[50px]" />
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -135,7 +100,11 @@ export function Orders({ orders }: OrdersProps) {
 											{order.id.substring(0, 8)}...
 										</TableCell>
 										<TableCell>
-											{new Date(order.createdAt).toLocaleDateString()}
+											{order.createdAt.toLocaleDateString("en-US", {
+												year: "numeric",
+												month: "2-digit",
+												day: "2-digit",
+											})}
 										</TableCell>
 										<TableCell>
 											<Badge className={getStatusColor(order.status)}>
@@ -179,30 +148,38 @@ export function Orders({ orders }: OrdersProps) {
 																</TableRow>
 															</TableHeader>
 															<TableBody>
-																{order.items &&
-																	order.items.map((item) => (
-																		<TableRow key={item.id}>
-																			<TableCell>
-																				<div>
-																					<div className="font-medium">
-																						{item.name}
-																					</div>
-																					{item.description && (
-																						<div className="text-sm text-gray-500">
-																							{item.description}
-																						</div>
-																					)}
+																{order.items.map((item) => (
+																	<TableRow key={item.id}>
+																		<TableCell>
+																			<div>
+																				<div className="font-medium">
+																					{item.label}
 																				</div>
-																			</TableCell>
-																			<TableCell>{item.quantity}</TableCell>
-																			<TableCell className="text-right">
-																				{formatCurrency(
-																					item.amount,
-																					order.currency,
+																				{item.label && (
+																					<div className="text-sm text-gray-500">
+																						{item.label}
+																					</div>
 																				)}
-																			</TableCell>
-																		</TableRow>
-																	))}
+																				{order.items && (
+																					<div className="text-sm text-gray-500">
+																						Total Amount:{" "}
+																						{formatCurrency(
+																							item.amount,
+																							order.currency,
+																						)}
+																					</div>
+																				)}
+																			</div>
+																		</TableCell>
+																		<TableCell>{order.items.length}</TableCell>
+																		<TableCell className="text-right">
+																			{formatCurrency(
+																				item.amount,
+																				order.currency,
+																			)}
+																		</TableCell>
+																	</TableRow>
+																))}
 															</TableBody>
 														</Table>
 													</div>

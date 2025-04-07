@@ -247,7 +247,7 @@ export default function ShoppingCart() {
 												// eslint-disable-next-line @next/next/no-img-element
 												<img
 													src={item.product.images[0]}
-													alt={item.product.name}
+													alt={item.product.name ?? "No image"}
 													className="h-full w-full object-cover"
 												/>
 											) : (

@@ -39,8 +39,8 @@ import { getCartContents } from "../shopping-cart/_actions/cart-actions";
 
 const sidebarItemsAdmin = [
 	{
-		title: "User dashboard",
-		url: "/user-dashboard",
+		title: "User management",
+		url: "/user-management",
 		icon: UserCog,
 	},
 ];
